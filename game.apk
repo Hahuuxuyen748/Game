@@ -1,0 +1,98 @@
+import pygame
+import random
+
+# Khởi tạo Pygame
+pygame.init()
+
+# Kích thước màn hình
+WIDTH, HEIGHT = 800, 400
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Hành Trình Tình Yêu")
+
+# Màu sắc
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+# Tạo nhân vật
+player_size = 50
+player_x = 50
+player_y = HEIGHT - player_size - 50
+player_velocity = 10
+is_jumping = False
+jump_count = 10
+
+# Chướng ngại vật
+obstacle_width = 50
+obstacle_height = 50
+obstacle_x = WIDTH
+obstacle_y = HEIGHT - obstacle_height - 50
+
+# Font chữ
+font = pygame.font.SysFont("comicsans", 30)
+big_font = pygame.font.SysFont("comicsans", 50)
+
+# Khởi tạo điểm
+score = 0
+run = True
+game_over = False
+
+# Hàm hiển thị thông điệp
+def display_message(text, color, y_offset=0):
+    message = big_font.render(text, True, color)
+    text_rect = message.get_rect(center=(WIDTH // 2, HEIGHT // 2 + y_offset))
+    screen.blit(message, text_rect)
+
+# Vòng lặp chính
+clock = pygame.time.Clock()
+while run:
+    clock.tick(30)
+    screen.fill(WHITE)
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    # Game Over
+    if game_over:
+        display_message("Chúc Mừng Bạn Hoàn Thành Hành Trình!", RED, -50)
+        display_message("Tình yêu chính là đích đến tuyệt vời!", BLACK, 50)
+        pygame.display.update()
+        continue
+
+    # Điều khiển nhân vật
+    keys = pygame.key.get_pressed()
+    if not is_jumping:
+        if keys[pygame.K_SPACE]:
+            is_jumping = True
+    else:
+        if jump_count >= -10:
+            direction = 1 if jump_count > 0 else -1
+            player_y -= (jump_count ** 2) * 0.5 * direction
+            jump_count -= 1
+        else:
+            is_jumping = False
+            jump_count = 10
+
+    # Di chuyển chướng ngại vật
+    obstacle_x -= 10
+    if obstacle_x < 0:
+        obstacle_x = WIDTH
+        score += 1
+
+    # Kiểm tra va chạm
+    if obstacle_x < player_x + player_size and obstacle_x + obstacle_width > player_x:
+        if player_y + player_size > obstacle_y:
+            game_over = True
+
+    # Vẽ nhân vật và chướng ngại vật
+    pygame.draw.rect(screen, BLACK, (player_x, player_y, player_size, player_size))
+    pygame.draw.rect(screen, RED, (obstacle_x, obstacle_y, obstacle_width, obstacle_height))
+
+    # Hiển thị điểm
+    score_text = font.render(f"Điểm: {score}", True, BLACK)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.update()
+
+pygame.quit()
